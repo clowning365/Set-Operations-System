@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SET OPERATIONS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        :root {
+            --accent: #00ff41;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Press Start 2P', system-ui;
+            background: #0d0d0d;
+            color: var(--accent);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: #111;
+            border: 4px solid var(--accent);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+        }
+        
+        header {
+            background: #000;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+        
+        h1 { font-size: 1.9rem; margin-bottom: 5px; }
+        .programmer { font-size: 0.95rem; opacity: 0.9; }
+        
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 12px;
+            padding: 25px;
+            background: #1a1a1a;
+        }
+        
+        .menu-button {
+            background: #000;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 16px;
+            font-family: inherit;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .menu-button:hover {
+            background: var(--accent);
+            color: #000;
+        }
+        
+        .content {
+            padding: 25px;
+            background: #0a0a0a;
+            min-height: 480px;
+        }
+        
+        .terminal {
+            background: #000;
+            border: 2px solid #333;
+            padding: 20px;
+            font-family: monospace;
+            min-height: 380px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        
+        .error { color: #ff4444; }
+        
+        input {
+            background: #111;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 12px;
+            width: 100%;
+            margin: 8px 0;
+            font-family: monospace;
+        }
+        
+        button.action {
+            background: #000;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 12px 25px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SET OPERATIONS</h1>
+            <div class="programmer">Programmer: Luis Elijah Cavada</div>
+        </header>
+        
+        <div class="menu">
+            <button class="menu-button" onclick="selectMenu(1)">1. Input Sets A and B</button>
+            <button class="menu-button" onclick="selectMenu(2)">2. Input Universal Set</button>
+            <button class="menu-button" onclick="selectMenu(3)">3. Union of Sets A and B</button>
+            <button class="menu-button" onclick="selectMenu(4)">4. Intersection of Sets A and B</button>
+            <button class="menu-button" onclick="selectMenu(5)">5. Complement of Set A</button>
+            <button class="menu-button" onclick="selectMenu(6)">6. Complement of Set B</button>
+            <button class="menu-button" onclick="selectMenu(7)">7. Display Sets A and B</button>
+            <button class="menu-button" onclick="selectMenu(8)">8. Display Universal Set</button>
+            <button class="menu-button" onclick="selectMenu(9)" style="color:#ff6666; border-color:#ff6666;">9. Exit</button>
+        </div>
+        
+        <div class="content">
+            <div class="terminal" id="terminal">
+                Welcome to SET OPERATIONS!<br><br>
+                Click any option from the menu above.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let setA = new Set();
+        let setB = new Set();
+        let universalSet = new Set();
+
+        function formatSet(s) {
+            return s.size === 0 ? "{}" : "{" + Array.from(s).sort((a,b)=>a-b).join(",") + "}";
+        }
+
+        function print(text, isError = false) {
+            const term = document.getElementById("terminal");
+            const div = document.createElement("div");
+            if (isError) div.className = "error";
+            div.textContent = text;
+            term.appendChild(div);
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function clearTerminal() {
+            document.getElementById("terminal").innerHTML = "";
+        }
+
+        function selectMenu(choice) {
+            clearTerminal();
+            
+            switch(choice) {
+                case 1: inputSetsAB(); break;
+                case 2: inputUniversal(); break;
+                case 3: showUnion(); break;
+                case 4: showIntersection(); break;
+                case 5: showComplementA(); break;
+                case 6: showComplementB(); break;
+                case 7: showDisplaySets(); break;
+                case 8: showDisplayUniversal(); break;
+                case 9: exitProgram(); break;
+                default: 
+                    print("ERROR: INVALID CHOICE!", true);
+                    returnToMenu();
+            }
+        }
+
+        // ====================== INPUT SETS A & B ======================
+        function inputSetsAB() {
+            let html = `
+                <strong>Input Sets A and B</strong><br><br>
+                <strong>Input Set A</strong><br>
+                Enter size for Set A: <input type="number" id="sizeA" min="1" max="10"><br><br>
+                <div id="inputsA"></div>
+                
+                <strong>Input Set B</strong><br>
+                Enter size for Set B: <input type="number" id="sizeB" min="1" max="10"><br><br>
+                <div id="inputsB"></div>
+                
+                <button class="action" onclick="processSetsAB()">Submit</button>
+                <button class="action" onclick="resetToMenu()">Cancel</button>
+            `;
+            document.getElementById("terminal").innerHTML = html;
+
+            // Dynamic input fields
+            document.getElementById("sizeA").addEventListener("input", generateInputsA);
+            document.getElementById("sizeB").addEventListener("input", generateInputsB);
+        }
+
+        function generateInputsA() {
+            const size = parseInt(document.getElementById("sizeA").value) || 0;
+            let html = "";
+            for (let i = 1; i <= size; i++) {
+                html += `Enter Set A number ${i}: <input type="number" id="a${i}" min="1" max="20"><br>`;
+            }
+            document.getElementById("inputsA").innerHTML = html;
+        }
+
+        function generateInputsB() {
+            const size = parseInt(document.getElementById("sizeB").value) || 0;
+            let html = "";
+            for (let i = 1; i <= size; i++) {
+                html += `Enter Set B number ${i}: <input type="number" id="b${i}" min="1" max="20"><br>`;
+            }
+            document.getElementById("inputsB").innerHTML = html;
+        }
+
+        function processSetsAB() {
+            const sizeA = parseInt(document.getElementById("sizeA").value);
+            const sizeB = parseInt(document.getElementById("sizeB").value);
+
+            if (!sizeA || sizeA < 1 || sizeA > 10) {
+                print("ERROR: INVALID SIZE!", true);
+                returnToMenu();
+                return;
+            }
+            if (!sizeB || sizeB < 1 || sizeB > 10) {
+                print("ERROR: INVALID SIZE!", true);
+                returnToMenu();
+                return;
+            }
+
+            setA.clear();
+            let valid = true;
+
+            for (let i = 1; i <= sizeA; i++) {
+                const val = parseInt(document.getElementById(`a${i}`).value);
+                if (!val || val < 1 || val > 20) {
+                    valid = false;
+                    break;
+                }
+                setA.add(val);
+            }
+
+            if (!valid) {
+                print("ERROR: Numbers must be between 1 to 20!", true);
+                returnToMenu();
+                return;
+            }
+
+            setB.clear();
+            for (let i = 1; i <= sizeB; i++) {
+                const val = parseInt(document.getElementById(`b${i}`).value);
+                if (!val || val < 1 || val > 20) {
+                    valid = false;
+                    break;
+                }
+                setB.add(val);
+            }
+
+            if (!valid) {
+                print("ERROR: Numbers must be between 1 to 20!", true);
+                returnToMenu();
+                return;
+            }
+
+            print(`Set A = ${formatSet(setA)}`);
+            print(`Set B = ${formatSet(setB)}`);
+            print("Sets saved successfully!");
+            returnToMenu();
+        }
+
+        // ====================== UNIVERSAL SET ======================
+        function inputUniversal() {
+            let html = `
+                <strong>Input Universal Set</strong><br><br>
+                Input size of Universal Set: <input type="number" id="sizeU" min="1" max="20"><br><br>
+                <div id="inputsU"></div>
+                <button class="action" onclick="processUniversal()">Submit</button>
+                <button class="action" onclick="resetToMenu()">Cancel</button>
+            `;
+            document.getElementById("terminal").innerHTML = html;
+            document.getElementById("sizeU").addEventListener("input", generateUniversalInputs);
+        }
+
+        function generateUniversalInputs() {
+            const size = parseInt(document.getElementById("sizeU").value) || 0;
+            let html = "";
+            for (let i = 1; i <= size; i++) {
+                html += `Enter Universal Set Number ${i}: <input type="number" id="u${i}" min="1" max="20"><br>`;
+            }
+            document.getElementById("inputsU").innerHTML = html;
+        }
+
+        function processUniversal() {
+            const sizeU = parseInt(document.getElementById("sizeU").value);
+            if (!sizeU || sizeU < 1 || sizeU > 20) {
+                print("ERROR: INVALID SIZE!", true);
+                returnToMenu();
+                return;
+            }
+
+            universalSet.clear();
+            let valid = true;
+
+            for (let i = 1; i <= sizeU; i++) {
+                const val = parseInt(document.getElementById(`u${i}`).value);
+                if (!val || val < 1 || val > 20) {
+                    valid = false;
+                    break;
+                }
+                universalSet.add(val);
+            }
+
+            if (!valid) {
+                print("ERROR: Numbers must be between 1 to 20!", true);
+                returnToMenu();
+                return;
+            }
+
+            print(`Universal Set = ${formatSet(universalSet)}`);
+            print("Universal Set saved successfully!");
+            returnToMenu();
+        }
+
+        // ====================== OPERATIONS ======================
+        function showUnion() {
+            if (setA.size === 0 || setB.size === 0) {
+                print("ERROR: Please input Sets A and B first!", true);
+            } else {
+                const union = new Set([...setA, ...setB]);
+                print(`Union of Sets A and B = ${formatSet(union)}`);
+            }
+            returnToMenu();
+        }
+
+        function showIntersection() {
+            if (setA.size === 0 || setB.size === 0) {
+                print("ERROR: Please input Sets A and B first!", true);
+            } else {
+                const inter = new Set([...setA].filter(x => setB.has(x)));
+                print(`Intersection of Sets A and B = ${formatSet(inter)}`);
+            }
+            returnToMenu();
+        }
+
+        function showComplementA() {
+            if (universalSet.size === 0) {
+                print("ERROR: Please input Universal Set first!", true);
+            } else {
+                const comp = new Set([...universalSet].filter(x => !setA.has(x)));
+                print(`Complement of Set A = ${formatSet(comp)}`);
+            }
+            returnToMenu();
+        }
+
+        function showComplementB() {
+            if (universalSet.size === 0) {
+                print("ERROR: Please input Universal Set first!", true);
+            } else {
+                const comp = new Set([...universalSet].filter(x => !setB.has(x)));
+                print(`Complement of Set B = ${formatSet(comp)}`);
+            }
+            returnToMenu();
+        }
+
+        function showDisplaySets() {
+            print(`Set A = ${formatSet(setA)}`);
+            print(`Set B = ${formatSet(setB)}`);
+            returnToMenu();
+        }
+
+        function showDisplayUniversal() {
+            if (universalSet.size === 0) {
+                print("Universal Set is empty.", true);
+            } else {
+                print(`Universal Set = ${formatSet(universalSet)}`);
+            }
+            returnToMenu();
+        }
+        function exitProgram() {
+            clearTerminal();
+            print("Exit Program. Thank you!");
+        }
+
+        
+    </script>
+</body>
+</html>
